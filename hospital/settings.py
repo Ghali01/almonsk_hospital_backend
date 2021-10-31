@@ -40,7 +40,9 @@ ALLOWED_HOSTS = [
 INSTALLED_APPS = [
     'rest_framework',
     'drugs.apps.DrugsConfig',
+    'surgeries.apps.SurgeriesConfig',
     'doctors.apps.DoctorsConfig',
+    'patients.apps.PatientsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
