@@ -1,7 +1,11 @@
 from django.urls import path
-from patients.views import PatientCosts, Patients
+from patients import views 
 urlpatterns=[ 
-    path('costs/<int:id>',PatientCosts.as_view(),name='patient-costs'),
-    path('<str:mode>/<int:prami>',Patients.as_view(),name='patients'),
-    path('<str:mode>',Patients.as_view(),name='patients-no-num'),
+    path('costs/<int:id>',views.PatientCosts.as_view(),name='patient-costs'),
+    path('drugs/<int:id>',views.PatientDrugs.as_view(),name='patient-drugs'),
+    path('surgeries/<int:id>',views.PatientSurgeries.as_view(),name='patient-drugs'),
+    path('invoice/<int:id>',views.Invoice.as_view(),name='patient-drugs'),
+    path('list/<int:page>',views.PatientsList.as_view(),name='patients-list'),
+    path('accept',views.PatientAccept.as_view(),name='patients-accept'),
+    path('accept/<int:pk>',views.PatientAccept.as_view(),name='patients-accept'),
 ]

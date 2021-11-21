@@ -26,9 +26,31 @@ class PatientAcceptSerializer(ModelSerializer):
 class ConsultSerializer(ModelSerializer):
     class Meta:
         model=PatientConsult
-        fields=['doctor','cost','patient']
+        fields=['doctor','cost','paided','patient']
 class PatientCostSerializer(ModelSerializer):
     class Meta:
         model=patientCosts
         exclude=['patient','id']
 
+class PatientDrugSerializer(ModelSerializer):
+    class Meta:
+        model=PatientDrug
+        fields='__all__'
+
+class PatienSurgerySerializer(ModelSerializer):
+
+    class Meta:
+        model=PatientSurgery
+        fields='__all__'
+
+class InvoiceSerializer(ModelSerializer):
+    doctorName=serializers.StringRelatedField(source='doctor')
+    fullName=serializers.StringRelatedField(source='*')
+    surgeryRom=serializers.IntegerField(source='costs.surgeryRom')
+    intensiveCare=serializers.IntegerField(source='costs.intensiveCare')
+    residence=serializers.IntegerField(source='costs.residence')
+    laboratory=serializers.IntegerField(source='costs.laboratory')
+    class Meta:
+        model=Patient
+        fields=['fullName','doctorName','surgeryRom','intensiveCare','residence',
+                    'laboratory','gender','acceptID','enter','out']

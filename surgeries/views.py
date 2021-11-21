@@ -1,8 +1,9 @@
 from rest_framework.generics import GenericAPIView
-from rest_framework.mixins import ListModelMixin
+from rest_framework.mixins import CreateModelMixin, ListModelMixin
+from rest_framework.response import Response
 from .serializers import Surgery,SurgerySerializer
-
-class Surgeries(GenericAPIView,ListModelMixin):
+from rest_framework.exceptions import ValidationError
+class Surgeries(GenericAPIView,ListModelMixin,CreateModelMixin):
     serializer_class=SurgerySerializer
     queryset=Surgery.objects.all()
 
@@ -11,17 +12,22 @@ class Surgeries(GenericAPIView,ListModelMixin):
         if self.request.method=='GET' and 'search' in self.request.GET:
             page=self.kwargs['page']
             if self.request.GET['search']:
-                return queryset.filter(name__icontains=self.request.GET['search'])[10*(page-1):10*page]
-            return queryset[10*(page-1):10*page]
+                return queryset.filter(name__icontains=self.request.GET['search'])[20*(page-1):20*page]
+            return queryset[20*(page-1):20*page]
                 
         return queryset
 
     def get(self,request,*args,**kwargs):
         return self.list(request)
-
+    def post(self,request,*args,**kwargs):
+        return self.create(request,*args,**kwargs)
     def put(self,request,*args,**kwargs):
-        for item in request.data:
-            serializerd=SurgerySerializer(self.get_queryset().get(pk=item['id']),item) if 'id' in item else SurgerySerializer(data=item)
-            if serializerd.is_valid():
-                serializerd.save()
-        return self.list(request)
+        if  'id' in request.data:
+            surgery=Surgery.objects.get(pk=request.data['id'])
+            serializered=SurgerySerializer(instance=surgery,data=request.data)
+            if serializered.is_valid():
+                serializered.save()
+
+            return Response(serializered.data)
+        raise ValidationError(detail='id is required')
+       

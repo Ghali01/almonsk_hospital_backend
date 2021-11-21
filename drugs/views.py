@@ -1,8 +1,9 @@
 from rest_framework.generics import GenericAPIView
-from rest_framework.mixins import ListModelMixin
+from rest_framework.mixins import ListModelMixin,CreateModelMixin
 from .serializers import Drug,DrugSerializer
-
-class Drugs(GenericAPIView,ListModelMixin):
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
+class Drugs(GenericAPIView,ListModelMixin,CreateModelMixin):
     serializer_class=DrugSerializer
     queryset=Drug.objects.all()
     
@@ -11,20 +12,25 @@ class Drugs(GenericAPIView,ListModelMixin):
             page=self.kwargs['page']
             if self.request.GET['search']:
                 print(self.request.GET['search'])
-                q=queryset.filter(name__icontains=self.request.GET['search'])[10*(page-1):10*page]
-                print(q )
+                q=queryset.filter(name__icontains=self.request.GET['search'])[20*(page-1):20*page]
                 return q 
             
-            return queryset[10*(page-1):10*page]
+            return queryset[20*(page-1):20*page]
             
         return queryset
     def get(self,request,*args,**kwargs):
 
         return self.list(request)
 
+    def post(self,request,*args,**kwargs):
+        return self.create(request,*args,**kwargs)
     def put(self,request,*args,**kwargs):
-        for item in request.data:
-            serializerd=DrugSerializer(self.get_queryset().get(pk=item['id']),item) if 'id' in item else DrugSerializer(data=item)
-            if serializerd.is_valid():
-                serializerd.save()
-        return self.list(request)
+        if  'id' in request.data:
+            surgery=Drug.objects.get(pk=request.data['id'])
+            serializered=DrugSerializer(instance=surgery,data=request.data)
+            if serializered.is_valid():
+                serializered.save()
+
+            return Response(serializered.data)
+        raise ValidationError(detail='id is required')
+       
