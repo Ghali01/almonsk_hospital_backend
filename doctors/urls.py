@@ -9,4 +9,5 @@ urlpatterns=[
     path('surgeries/<int:id>/<int:page>',views.DoctorSurgeries.as_view(),name='doctor-surgeries'),
     path('surgery-paided',views.setSurgeryPaided,name='surgery-paided'),
     path('consult-paided/<int:id>',views.setConsultPaided,name='consult-paided'),
+
 ]

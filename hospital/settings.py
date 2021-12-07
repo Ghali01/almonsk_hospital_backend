@@ -10,11 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
+from json.decoder import JSONDecodeError
 from pathlib import Path
 
 from utilities.network import getIP
+import json
 
-import sys
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -84,14 +85,17 @@ WSGI_APPLICATION = 'hospital.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+dbFile=open('db.json')
+txt=dbFile.read()
+dbFile.close()
+dbSettings=json.loads(txt)
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': #getattr(sys,'_MEIPASS',str(BASE_DIR)) + 
-        'db.sqlite3',
-    }
+    'default': dbSettings['default'],
+    'export':dbSettings['export'] if 'export' in dbSettings else {},
+    'import':dbSettings['import'] if 'import' in dbSettings else {},
+    'flashDB':dbSettings['flashDB'] if 'flashDB' in dbSettings else {},
+    'newDB':dbSettings['newDB'] if 'newDB' in dbSettings else {},
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -112,12 +116,18 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'utilities.permissions.MainPermission',
+    ]
+}
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Damascus'
 
 USE_I18N = True
 

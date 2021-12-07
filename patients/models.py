@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models.fields import BooleanField
 from doctors.models import Doctor
-from drugs.models import Drug
+from drugs.models import Drug,Employee
 from surgeries.models import Surgery
 
 class Patient(models.Model):
@@ -34,7 +34,8 @@ class Patient(models.Model):
     family=models.CharField(max_length=1,choices=familyChoices)
     doctor=models.ForeignKey(Doctor,null=True,on_delete=models.SET_NULL,related_name='patients')
     consults=models.ManyToManyField(Doctor,through='PatientConsult')
-
+    class Meta:
+        ordering=['-id']
     
     def __str__(self):
         return f'{self.firstName} {self.fatherName} {self.secondName}'
@@ -73,6 +74,9 @@ class PatientDrug(models.Model):
     count=models.PositiveIntegerField()
     price=models.PositiveIntegerField()
     note=models.CharField(max_length=200,null=True)
+    date=models.DateField()
+    employee=models.ForeignKey(Employee,null=True,on_delete=models.SET_NULL)
+
 
 
 class PatientSurgery(models.Model):

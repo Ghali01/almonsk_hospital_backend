@@ -1,12 +1,14 @@
-from rest_framework.views import APIView, Response
+from rest_framework.views import APIView,Response
 from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.mixins import CreateModelMixin,UpdateModelMixin,DestroyModelMixin
 from .serializers import DoctorSerialzer
 from .models import Doctor
 from rest_framework.exceptions import MethodNotAllowed
-from django.db.models.query_utils import Q
+from django.db.models.functions import Concat
+from django.db.models import Q,F,CharField,Value
 from patients.models import PatientConsult,PatientSurgery
 from rest_framework.decorators import  api_view
+import re
 class Doctors(GenericAPIView,CreateModelMixin,UpdateModelMixin,DestroyModelMixin):
     serializer_class=DoctorSerialzer
     queryset=Doctor.objects.all()
@@ -22,7 +24,12 @@ class DoctorsList(APIView):
     
     def get(self,request,*args,**kwargs):
         data=[]
-        qSet=Doctor.objects.filter(Q(firstName__icontains=request.GET['search'])|Q(fatherName__icontains=request.GET['search'])|Q(secondName__icontains=request.GET['search'])) if 'search' in request.GET else Doctor.objects.all()
+        qSet=Doctor.objects.all()
+        if 'search' in request.GET:
+            qSet=qSet.annotate(fullName=Concat(F('firstName'),Value(' '),F('fatherName'),Value(' '),F('secondName'),output_field=CharField()),
+                                fsName=Concat(F('firstName'),Value(' '),F('secondName'),output_field=CharField()))
+            qSet=qSet.filter(Q(fullName__istartswith=self.request.GET['search'])|Q(fsName__istartswith=self.request.GET['search']))
+            
         for doctor  in qSet:
             account=0
             for cons in PatientConsult.objects.filter(doctor=doctor,paided=False):

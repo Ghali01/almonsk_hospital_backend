@@ -96,7 +96,7 @@ wheels/
 .installed.cfg 
 *.egg 
 *.manifest 
-*.spec 
+
 
 # Installer logs 
 pip-log.txt 
@@ -165,3 +165,5 @@ GitHub.sublime-settings
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
+
+ 

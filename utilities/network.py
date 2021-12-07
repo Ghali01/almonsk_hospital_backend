@@ -1,7 +1,12 @@
 import socket
+from mysql.connector.errors import DatabaseError
 import psutil
 import os 
 import signal
+from mysql.connector import connect
+from time import sleep, time
+from tempfile  import gettempdir
+import shutil
 def getIP():
     hostName=socket.gethostname()
     ip= socket.gethostbyname(hostName)
@@ -19,5 +24,24 @@ def killAllServers():
         if proc.name()=='hospital-server.exe':
             print(proc.pid)
             os.kill(proc.pid,signal.SIGTERM)
+    cachePath=os.path.join(gettempdir(),'hs-cache')
+    print(cachePath)
+    if os.path.exists(cachePath):
+        for cacheDir in os.listdir(cachePath):
+            cacheDir=os.path.join(cachePath,cacheDir)
+            print(cacheDir)
+            if os.path.isdir(cacheDir):
+                shutil.rmtree(cacheDir)
+            elif os.path.isfile(cacheDir):
+                os.remove(cacheDir)
+def pingOnMySQL(host,user,password,port):
+    try:
+        s=time()
+        conn =connect(host=host,user=user,password=password,port=port)
+        e=time()
+        conn.close()
+        return True,e-s
+    except DatabaseError:
+        return False,0.0
 if __name__=='__main__':
-    print(getIP())
+    print(pingOnMySQL("127.0.0.1",'root','','3306'))

@@ -5,4 +5,4 @@ from .models import Surgery
 class SurgerySerializer(ModelSerializer):
     class Meta:
         model=Surgery
-        fields=['id','name','price']
+        fields=['id','name','duration','price']

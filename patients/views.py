@@ -5,56 +5,25 @@ from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from rest_framework.exceptions import MethodNotAllowed
 from .serializers import *
-class Patients(GenericAPIView,ListModelMixin,RetrieveModelMixin,CreateModelMixin,UpdateModelMixin,DestroyModelMixin):
-    filter_backends=[SearchFilter]
-    search_fields=['firstName','fatherName','secondName','acceptID']
-    lookup_url_kwarg='prami'    
-    queryset=Patient.objects.all()
-    LIST='list'
-    ACCEPT='accept'
+import re 
+from django.db.models import F,CharField,Value,Q
+from django.db.models.functions import Concat
 
-
-    def get_serializer_class(self):
-        
-        if self.kwargs['mode']==self.LIST:
-            return PatientListSerializer
-        elif self.kwargs['mode']==self.ACCEPT:
-            return PatientAcceptSerializer
-    def filter_queryset(self, queryset):
-        queryset= super().filter_queryset(queryset)
-        if self.kwargs['mode']==self.LIST and  self.request.method=='GET' :
-            page=self.kwargs['prami']
-            queryset= queryset[10*(page-1):page*10]
-        
-        return queryset
-    def get(self,request,*args,**kwargs):
-        if  self.kwargs['mode']==self.LIST:
-          return self.list(request)  
-        else: 
-            return self.retrieve(request)
-
-    def post(self,request,*args,**kwargs):
-        if  self.kwargs['mode']==self.ACCEPT:
-            return self.create(request)
-        else:
-            raise MethodNotAllowed('POST')
-    def put(self,request,*args,**kwargs):
-      return self.update(request)
-
-    def delete(self,request,*args,**kwargs):
-        if self.kwargs['mode']==self.ACCEPT:
-            return self.destroy(request)
-        else:
-            raise MethodNotAllowed('DELETE')
 
 class PatientsList(GenericAPIView,ListModelMixin):
     serializer_class=PatientListSerializer
     queryset=Patient.objects.all()
     def filter_queryset(self, queryset):
-        queryset= super().filter_queryset(queryset)
-        page=self.kwargs['page']
-        queryset= queryset[10*(page-1):page*10]
-        
+        queryset= self.get_queryset()
+        if 'search' in self.request.GET:
+            if self.request.GET['search'].isdigit():
+                print('id')
+                queryset=queryset.filter(acceptID=int(self.request.GET['search']))
+            else:
+                queryset=queryset.annotate(fullName=Concat(F('firstName'),Value(' '),F('fatherName'),Value(' '),F('secondName'),output_field=CharField()),
+                                            fsName=Concat(F('firstName'),Value(' '),F('secondName'),output_field=CharField()))
+                queryset=queryset.filter(Q(fullName__istartswith=self.request.GET['search'])|Q(fsName__istartswith=self.request.GET['search']))
+            
         return queryset
     def get(self,request,*args,**kwargs):
           return self.list(request)  
@@ -150,14 +119,26 @@ class PatientSurgeries(GenericAPIView,ListModelMixin):
 class Invoice(APIView):
     def get(self,request,id,*args,**kwargs):
         patient=Patient.objects.get(pk=id)
+        serilaizered=InvoiceSerializer(instance=patient)
+        data=dict(serilaizered.data)
         drugsCount=0
         for drug in patient.drugs.all():
             drugsCount+=drug.price*drug.count
-        serilaizered=InvoiceSerializer(instance=patient)
-        # serilaizered.is_valid()
-        data=dict(serilaizered.data)
+        data['drugsCount']=drugsCount
         data['ECGAndEcho']= (patient.costs.ECG if patient.costs.ECG else 0)+(patient.costs.echo if patient.costs.echo else 0)
         data['raysAndAxial']=(patient.costs.rays if patient.costs.rays else 0)+(patient.costs.axial if patient.costs.axial else 0)
-        data['drugsCount']=drugsCount
-        
+        surgeries=PatientSurgery.objects.filter(patient=patient)
+        doctorCosts=0
+        assistantCosts=0
+        anestheticCosts=0
+        for surgery in surgeries:
+            doctorCosts+=surgery.surgeonCosts or 0
+            assistantCosts+=surgery.assistantCosts or 0
+            anestheticCosts+=surgery.anestheticCosts or 0
+        consults=PatientConsult.objects.filter(patient=patient)
+        for cons in consults:
+            assistantCosts+=cons.cost
+        data['doctorCosts']=doctorCosts
+        data['assistantCosts']=assistantCosts
+        data['anestheticCosts']=anestheticCosts
         return Response(data)
