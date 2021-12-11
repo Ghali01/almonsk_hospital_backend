@@ -74,7 +74,7 @@ class PatientDrug(models.Model):
     count=models.PositiveIntegerField()
     price=models.PositiveIntegerField()
     note=models.CharField(max_length=200,null=True)
-    date=models.DateField()
+    date=models.DateField(null=True)
     employee=models.ForeignKey(Employee,null=True,on_delete=models.SET_NULL)
 
 

@@ -39,6 +39,7 @@ ALLOWED_HOSTS = [
 
 INSTALLED_APPS = [
     'rest_framework',
+    'directory.apps.DirectoryConfig',
     'drugs.apps.DrugsConfig',
     'surgeries.apps.SurgeriesConfig',
     'doctors.apps.DoctorsConfig',

@@ -104,7 +104,7 @@ class DoctorCosts(APIView):
         for surgery in PatientSurgery.objects.filter(Q(Q(surgeon_id=id,surgeonPaided=False)|Q(assistant_id=id,assistantPaided=False)|Q(anesthetic_id=id,anestheticPaided=False))):
             if surgery.surgeonCosts and surgery.surgeon and surgery.surgeonPaided==False and surgery.surgeon.id==id:
                 surgeriesCount+=surgery.surgeonCosts
-            if surgery.assistantCosts and surgery.assistant and surgery.assistantPaided==False and surgery.anestheticPaided==False and surgery.assistant.id==id:
+            if surgery.assistantCosts and surgery.assistant and surgery.assistantPaided==False and surgery.assistant.id==id:
                 surgeriesCount+=surgery.assistantCosts
             if  surgery.anestheticCosts and  surgery.anesthetic and surgery.anestheticPaided==False and  surgery.anesthetic.id==id:
                 surgeriesCount+=surgery.anestheticCosts

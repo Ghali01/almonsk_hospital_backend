@@ -4,7 +4,7 @@
 block_cipher = None
 
 
-a = Analysis(['hospital-server.py'],
+a = Analysis(['..\hospital-server.py'],
              pathex=['E:\\projects\\hosiptal\\api'],
              binaries=[],
              datas=[],

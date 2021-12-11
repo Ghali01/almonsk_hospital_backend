@@ -4,7 +4,7 @@
 block_cipher = None
 
 
-a = Analysis(['db-management.py'],
+a = Analysis(['..\db-management.py'],
              pathex=['E:\\projects\\hosiptal\\api'],
              binaries=[],
              datas=[],
