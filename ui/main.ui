@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>خادم المنسق</string>
   </property>
   <property name="layoutDirection">
    <enum>Qt::RightToLeft</enum>
@@ -119,14 +119,14 @@
     <widget class="QPushButton" name="migrate2FlashBtn">
      <property name="geometry">
       <rect>
-       <x>720</x>
+       <x>580</x>
        <y>40</y>
        <width>120</width>
        <height>28</height>
       </rect>
      </property>
      <property name="text">
-      <string>Migrate to Flash</string>
+      <string>Migrate to Local</string>
      </property>
     </widget>
     <widget class="QPushButton" name="importBtn">
@@ -140,6 +140,19 @@
      </property>
      <property name="text">
       <string>Import</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="connect2sqlite">
+     <property name="geometry">
+      <rect>
+       <x>720</x>
+       <y>40</y>
+       <width>120</width>
+       <height>28</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>connect to sqlite</string>
      </property>
     </widget>
    </widget>
@@ -336,7 +349,7 @@
     <widget class="QPushButton" name="msqlPingBtn">
      <property name="geometry">
       <rect>
-       <x>850</x>
+       <x>740</x>
        <y>230</y>
        <width>93</width>
        <height>28</height>
@@ -349,7 +362,7 @@
     <widget class="QLabel" name="labelPingTime">
      <property name="geometry">
       <rect>
-       <x>700</x>
+       <x>600</x>
        <y>230</y>
        <width>127</width>
        <height>22</height>
@@ -362,6 +375,19 @@
      </property>
      <property name="text">
       <string/>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="connect2MysqlBtn">
+     <property name="geometry">
+      <rect>
+       <x>840</x>
+       <y>230</y>
+       <width>120</width>
+       <height>28</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>connect</string>
      </property>
     </widget>
    </widget>

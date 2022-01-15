@@ -4,5 +4,7 @@ class MainPermission(BasePermission):
 
 
     def has_permission(self, request, view):
-        return request.headers['token'] == self.__TOKEN
-        
+        # return True
+        if 'token' in request.headers:
+            return request.headers['token'] == self.__TOKEN
+        return False    

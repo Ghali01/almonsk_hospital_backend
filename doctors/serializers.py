@@ -6,5 +6,5 @@ class DoctorSerialzer(ModelSerializer):
     account= IntegerField(read_only=True)
     class Meta:
         model=Doctor
-        fields=['id','firstName','fatherName','secondName','phone','account']
+        fields=['id','firstName','fatherName','secondName','phone','specialzation','surgeon','assistant','anesthetic','account']
         read_only_fields=['account']   

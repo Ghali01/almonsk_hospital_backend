@@ -26,13 +26,12 @@ def main():
             sys.stdout=stdout
             print(1)
         elif sys.argv[1]=='export2sqlite': 
-            Fpath=sys.argv[2]
             tmp =open(os.devnull,'w')
             sys.stdout=tmp
             call_command('migrate','--database=export')
             f=open(tmpdatapath,'w',encoding='utf-8')
             sys.stdout=f
-            call_command('dumpdata')
+            call_command('dumpdata',"--exclude",'contenttypes')
             f.close()
             sys.stdout=tmp
             call_command('loaddata','--database=export',tmpdatapath)
@@ -40,10 +39,12 @@ def main():
             sys.stdout=stdout
             print(1)
         elif sys.argv[1]=='importfromsqlite':
-            path =sys.argv[2]
+            z=open(os.devnull,'w')
+            sys.stdout=z
+            call_command('migrate','--database=import')
             file=open(tmpdatapath,'w',encoding='utf-8')
             sys.stdout=file
-            call_command('dumpdata','--database=import')
+            call_command('dumpdata','--database=import',"--exclude",'contenttypes')
             sys.stdout=open(os.devnull,'w')
             file.close()
             
@@ -58,11 +59,15 @@ def main():
             sys.stdout=open(os.devnull,'w')                  
             
             file.close()
-            call_command('migrate','--database=flashDB')
-            call_command('loaddata','--database=flashDB',tmpdatapath) 
+            call_command('migrate','--database=newDB')
+            call_command('loaddata','--database=newDB',tmpdatapath) 
             sys.stdout=stdout
             print(1)
-
+        elif sys.argv[1] =="migrate":
+            sys.stdout=open(os.devnull,'w')
+            call_command('migrate','--database=newDB')
+            sys.stdout=stdout
+            print(1)
         else: 
             print('''unknown command
                     try :

@@ -1,8 +1,8 @@
-from time import sleep
+from PyQt5.QtGui import QIcon
 import clr
 clr.AddReference('System.Net.NetworkInformation')
 from System.Net.NetworkInformation import  NetworkChange,NetworkAddressChangedEventHandler
-from subprocess import Popen,check_output,PIPE
+
 from PyQt5.QtWidgets import QMainWindow,QApplication,QMessageBox,QFileDialog, QWidget
 from  PyQt5.QtCore import   pyqtSignal
 from ui.main import  Ui_Form
@@ -11,9 +11,15 @@ from utilities.network import pingOnServer,pingOnMySQL,killAllServers
 from threading import Thread
 import json
 import os
-import signal
-import shutil
 from utilities.usb import checkOnUSBDongle
+import ctypes 
+import subprocess
+def popen(cmd: str) -> str:
+    """For pyinstaller -w"""
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    process = subprocess.Popen(cmd,startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+    return process.stdout.read()
 class MainWindow(QMainWindow,Ui_Form):
     serverSignal=pyqtSignal(int)
     dialogSignal=pyqtSignal(int)
@@ -22,6 +28,8 @@ class MainWindow(QMainWindow,Ui_Form):
     stopServerSignal=pyqtSignal(str)
     runingServerSignal=pyqtSignal()
     databasePingrSignal=pyqtSignal(int)
+    connect2SqliteFinshedSignal=pyqtSignal()
+    connect2MysqlSignal=pyqtSignal(int)
 
     isServerOn=False
     runServerOnBack=False
@@ -51,12 +59,17 @@ class MainWindow(QMainWindow,Ui_Form):
         self.portSpinBox.setValue(3306)
         self.dbNameLlineEdit.setText('hospital')
         self.databasePingrSignal.connect(self.databasePingSlot)
+        self.connect2sqlite.clicked.connect(self.connect2SqliteBtnSlot)
+        self.connect2MysqlBtn.clicked.connect(self.connect2MysqlBtnSlot)
+        self.connect2SqliteFinshedSignal.connect(self.connect2SqliteFinshedSlot)
+        self.connect2MysqlSignal.connect(self.connect2MysqleSlot)
         self.serverButton.setEnabled(False)
-        with open('db.json','r') as dbSettingsFile:
+        with open(os.path.expandvars('%APPDATA%/al-monsk server/db.json'),'r') as dbSettingsFile:
             dbSettings=json.loads(dbSettingsFile.read())
             dbType=dbSettings['type']
             self.dbType=dbType
             if dbType=='mysql':
+                print('ssws')
                 self.tabWidget.setCurrentIndex(1)
                 self.dbConncetSettings=dbSettings['default']                
                 self.hostLineEdit.setText(self.dbConncetSettings['HOST'])
@@ -66,6 +79,7 @@ class MainWindow(QMainWindow,Ui_Form):
                 self.dbNameLlineEdit.setText(self.dbConncetSettings['NAME'])
             elif self.dbType=='sqlite':
                 self.migrate2FlashBtn.setVisible(False)                        
+                self.connect2sqlite.setVisible(False)                        
     
         Thread(target=self.onLunchServer).start()
     def killAllServers(self):
@@ -150,7 +164,7 @@ class MainWindow(QMainWindow,Ui_Form):
                 self.killAllServers()
                 self.startMigratingSignal.emit('mysql')  
     
-                settingsFile=open('db.json','r+')
+                settingsFile=open(os.path.expandvars('%APPDATA%/al-monsk server/db.json'),'r+')
                 settingsFile.seek(0)
                 settings=json.loads(settingsFile.read())
                 settings['newDB']={
@@ -165,8 +179,8 @@ class MainWindow(QMainWindow,Ui_Form):
                 settingsFile.seek(0)
                 settingsFile.write(json.dumps(settings))
                 settingsFile.close()
-                resB=check_output('db-management.exe migratetomysql')
-                settingsFile=open('db.json','w')
+                resB=popen('db-management.exe migratetomysql')
+                settingsFile=open(os.path.expandvars('%APPDATA%/al-monsk server/db.json'),'w')
             
                 if int(resB.decode('utf-8'))==1:
                     
@@ -190,6 +204,8 @@ class MainWindow(QMainWindow,Ui_Form):
             
             dialiog=QMessageBox().information(self,'Migration succeeded','Migration finshed with succeeded',QMessageBox.Close,QMessageBox.Close)
             self.migrate2FlashBtn.setVisible(True)
+            self.connect2sqlite.setVisible(True)                        
+
             self.dbType=='mysql'                        
 
         if res==2:
@@ -227,9 +243,11 @@ class MainWindow(QMainWindow,Ui_Form):
         if res==10:    
             dialiog=QMessageBox().information(self,'Migration succeeded','Migration finshed with succeeded',QMessageBox.Close,QMessageBox.Close)
             self.dbType=='sqlite'                        
-            self.migrate2FlashBtn.setText('migrate to flash')
+            self.migrate2FlashBtn.setText('migrate to local')
             self.migrate2FlashBtn.setEnabled(True)
             self.migrate2FlashBtn.setVisible(False)
+            self.connect2sqlite.setVisible(False)                        
+
         if res==11:
             dialiog=QMessageBox().critical(self,'Connection Error','Could not connect to the new database',QMessageBox.Close,QMessageBox.Close)
         
@@ -257,7 +275,7 @@ class MainWindow(QMainWindow,Ui_Form):
     def runServer(self):
         
         if (self.dbType=='mysql' and self.pingOnCurrentDB()[0]==True) or self.dbType=='sqlite':
-            self.proc = Popen('hospital-server.exe')
+            self.proc = subprocess.Popen('hospital-server.exe')
             # sleep(3)
           
 
@@ -301,7 +319,7 @@ class MainWindow(QMainWindow,Ui_Form):
                 self.killAllServers()
                 self.stopServerSignal.emit('export')
                 if self.pingOnCurrentDB():
-                    file=open('db.json','r+')
+                    file=open(os.path.expandvars('%APPDATA%/al-monsk server/db.json'),'r+')
                     settings=json.loads(file.read())
                     settings['export']={
                                 "ENGINE": "django.db.backends.sqlite3", 
@@ -312,13 +330,13 @@ class MainWindow(QMainWindow,Ui_Form):
                     
                     file.write(json.dumps(settings))
                     file.close()
-                    resB=check_output(f"db-management.exe export2sqlite {path}")
+                    resB=popen(f"db-management.exe export2sqlite {path}")
                     if int(resB.decode('utf-8'))==1:
                         self.dialogSignal.emit(6)
                         
                     else:
                         self.dialogSignal.emit(7)
-                    file=open('db.json','w')
+                    file=open(os.path.expandvars('%APPDATA%/al-monsk server/db.json'),'w')
                     del settings['export']
                     file.write(json.dumps(settings))
                     file.close()
@@ -336,7 +354,7 @@ class MainWindow(QMainWindow,Ui_Form):
                 self.killAllServers()
                 self.stopServerSignal.emit('import')
                 if self.pingOnCurrentDB():
-                    file=open('db.json','r+')
+                    file=open(os.path.expandvars('%APPDATA%/al-monsk server/db.json'),'r+')
                     settings=json.loads(file.read())
                     settings['import']={
                                 "ENGINE": "django.db.backends.sqlite3", 
@@ -346,13 +364,13 @@ class MainWindow(QMainWindow,Ui_Form):
                     file.seek(0)
                     file.write(json.dumps(settings))
                     file.close() 
-                    resB=check_output(f"db-management.exe importfromsqlite {path}")
+                    resB=popen(f"db-management.exe importfromsqlite {path}")
                     if int(resB.decode('utf-8'))==1:
                         
                         self.dialogSignal.emit(8)
                     else:
                         self.dialogSignal.emit(9)
-                    file=open('db.json','w')
+                    file=open(os.path.expandvars('%APPDATA%/al-monsk server/db.json'),'w')
                     del settings['import']
                     file.write(json.dumps(settings))
                     file.close() 
@@ -364,30 +382,30 @@ class MainWindow(QMainWindow,Ui_Form):
 
             self.startMigratingSignal.emit('sqlite')
             if self.pingOnCurrentDB():    
-                file=open('db.json','r+') 
+                file=open(os.path.expandvars('%APPDATA%/al-monsk server/db.json'),'r+') 
                 settings=json.loads(file.read())
-                settings['flashDB']={
+                settings['newDB']={
                             "ENGINE": "django.db.backends.sqlite3", 
-                            "NAME": "db.sqlite3"
+                            "NAME": "%APPDATA%/al-monsk server/db.sqlite3"
                             }
                 file.truncate(0)
                 file.seek(0)
                 file.write(json.dumps(settings))
                 file.close()
-                resB=check_output("db-management.exe migratetoflash")
-                file=open('db.json','w') 
+                resB=popen("db-management.exe migratetoflash")
+                file=open(os.path.expandvars('%APPDATA%/al-monsk server/db.json'),'w') 
                 if int(resB.decode('utf-8'))==1:
                     settings['type']='sqlite'
-                    settings['default']=settings['flashDB']
+                    settings['default']=settings['newDB']
                     self.dialogSignal.emit(10)
                 else:
                     self.dialogSignal.emit(3)
 
-                del settings['flashDB']
+                del settings['newDB']
                 file.write(json.dumps(settings))
                 file.close()
             self.runServer()
-        res=QMessageBox.question(self,'migratin','Do you want migrate to flash memory',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)
+        res=QMessageBox.question(self,'migratin','Do you want migrate to local',QMessageBox.Yes|QMessageBox.No,QMessageBox.No)
     
         if res==QMessageBox.Yes:
             Thread(target=migrate).start()
@@ -398,9 +416,102 @@ class MainWindow(QMainWindow,Ui_Form):
         elif res==2:
             self.serverButton.setEnabled(True)
             self.serverStatus.setText('')
+    def connect2SqliteBtnSlot(self):
+        self.connect2sqlite.setEnabled(False)
+        self.connect2sqlite.setText('Connecting...')
+        def migrate():
+            self.killAllServers()
+            self.startMigratingSignal.emit('sqlite')  
+            settingsFile=open(os.path.expandvars('%APPDATA%/al-monsk server/db.json'),'r+')
+            dbSettings=json.loads(settingsFile.read())
+            dbSettings['newDB']={
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": "%APPDATA%/al-monsk server/db.sqlite3"
+            }
+            settingsFile.truncate(0)
+            settingsFile.seek(0)
+            settingsFile.write(json.dumps(dbSettings))
             
+            settingsFile.close()
+            resB=popen('db-management.exe migrate')
+            if int(resB.decode('utf-8'))==1:
+                dbSettings['type']='sqlite'
+                self.dbType='sqlite'
+                dbSettings['default']=dbSettings['newDB']
+                self.connect2SqliteFinshedSignal.emit()
+                self.runServer()          
+            del dbSettings['newDB']
+            settingsFile=open(os.path.expandvars('%APPDATA%/al-monsk server/db.json'),'w')
+            settingsFile.write(json.dumps(dbSettings))
+
+        Thread(target=migrate).start()
+    def connect2MysqlBtnSlot(self):
+        def migrate():
+            if self.pingOnCurrentDB():
+                self.killAllServers()
+                self.connect2MysqlSignal.emit(1)
+
+                self.startMigratingSignal.emit('mysql')  
+                settingsFile=open(os.path.expandvars('%APPDATA%/al-monsk server/db.json'),'r+')
+                dbSettings=json.loads(settingsFile.read())
+                dbSettings['newDB']={
+                                "ENGINE": "django.db.backends.mysql",
+                                "HOST": self.hostLineEdit.text(),
+                                "USER":self.usernameLineEdit.text(),
+                                "PASSWORD":self.passwordLineEdit.text(),
+                                "PORT":self.portSpinBox.text(),
+                                "NAME":str(self.dbNameLlineEdit.text())
+                        }
+                settingsFile.truncate(0)
+                settingsFile.seek(0)
+                settingsFile.write(json.dumps(dbSettings))
+                
+                settingsFile.close()
+                resB=popen('db-management.exe migrate')
+                print(int(resB.decode('utf-8')))
+                if int(resB.decode('utf-8'))==1:
+                    dbSettings['type']='mysql'
+                    self.dbType='mysql'
+                    dbSettings['default']=dbSettings['newDB']
+                    self.connect2MysqlSignal.emit(2)
+                else:
+                    self.connect2MysqlSignal.emit(3)
+                self.runServer()          
+                del dbSettings['newDB']
+                settingsFile=open(os.path.expandvars('%APPDATA%/al-monsk server/db.json'),'w')
+                settingsFile.write(json.dumps(dbSettings))
+                settingsFile.close()
+
+        Thread(target=migrate).start()
+    def connect2SqliteFinshedSlot(self):
+        self.connect2sqlite.setVisible(False)
+        self.migrate2FlashBtn.setVisible(False)
+        self.connect2sqlite.setEnabled(True)
+        self.connect2sqlite.setText('Connect to sqlite')
+        dialiog=QMessageBox().information(self,'Connection Succeeded','Connect finshed with succeeded',QMessageBox.Close,QMessageBox.Close)
+    def connect2MysqleSlot(self,res):
+        if res==1:
+            self.connect2MysqlBtn.setText('Conneecting')
+            self.connect2MysqlBtn.setEnabled(False)
+        if res==2:
+            dialiog=QMessageBox().information(self,'Connection Succeeded','Connect finshed with succeeded',QMessageBox.Close,QMessageBox.Close)
+            self.connect2sqlite.setVisible(True)
+            self.migrate2FlashBtn.setVisible(True)
+            self.migrate2FlashBtn.setEnabled(True)
+            self.migrate2FlashBtn.setText('migrate')
+            self
+        if res in (2,3):
+            self.connect2MysqlBtn.setText('Conneect')
+            self.connect2MysqlBtn.setEnabled(True)
+            
+            self.mysqlMigrateBtn.setText('migrate')
+            self.mysqlMigrateBtn.setEnabled(True)
+        
 def main():
+    myAppId=u'mega.almonsk.server.runer'
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myAppId)
     app=QApplication(sys.argv)
+    app.setWindowIcon(QIcon('app_icon.ico'))
     if checkOnUSBDongle():
         w=MainWindow()
         app.exec()

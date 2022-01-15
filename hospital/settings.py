@@ -10,12 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-from json.decoder import JSONDecodeError
 from pathlib import Path
 
 from utilities.network import getIP
 import json
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -32,7 +31,8 @@ DEBUG = True
 ALLOWED_HOSTS = [
     getIP(),
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
+    '10.0.2.2'
 ]
 
 # Application definition
@@ -86,15 +86,17 @@ WSGI_APPLICATION = 'hospital.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-dbFile=open('db.json')
+dbFile=open(os.path.expandvars('%APPDATA%/al-monsk server/db.json'))
 txt=dbFile.read()
 dbFile.close()
 dbSettings=json.loads(txt)
+for item in ('default','newDB'):
+    if item in dbSettings:
+        dbSettings[item]['NAME']=os.path.expandvars(dbSettings[item]['NAME'])
 DATABASES = {
     'default': dbSettings['default'],
     'export':dbSettings['export'] if 'export' in dbSettings else {},
     'import':dbSettings['import'] if 'import' in dbSettings else {},
-    'flashDB':dbSettings['flashDB'] if 'flashDB' in dbSettings else {},
     'newDB':dbSettings['newDB'] if 'newDB' in dbSettings else {},
 }
 

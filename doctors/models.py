@@ -6,6 +6,10 @@ class Doctor(models.Model):
     fatherName=models.CharField(max_length=50)
     secondName=models.CharField(max_length=50)
     phone=models.CharField(max_length=10)
+    specialzation=models.CharField(max_length=50)
+    surgeon=models.BooleanField()
+    assistant=models.BooleanField()
+    anesthetic=models.BooleanField()
     
     class Meta:
         ordering=['firstName','fatherName','secondName']

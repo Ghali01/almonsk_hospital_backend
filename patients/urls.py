@@ -8,4 +8,5 @@ urlpatterns=[
     path('invoice/<int:id>',views.Invoice.as_view(),name='patient-drugs'),
     path('accept',views.PatientAccept.as_view(),name='patients-accept'),
     path('accept/<int:pk>',views.PatientAccept.as_view(),name='patients-accept'),
+    path('lock/<int:id>',views.lockPatientProfile,name='lock-profile')
 ]

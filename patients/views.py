@@ -1,9 +1,11 @@
+from datetime import datetime
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.mixins import ListModelMixin,UpdateModelMixin,RetrieveModelMixin,CreateModelMixin,DestroyModelMixin
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
-from rest_framework.exceptions import MethodNotAllowed
+from rest_framework.exceptions import ValidationError 
 from .serializers import *
 import re 
 from django.db.models import F,CharField,Value,Q
@@ -123,7 +125,7 @@ class Invoice(APIView):
         data=dict(serilaizered.data)
         drugsCount=0
         for drug in patient.drugs.all():
-            drugsCount+=drug.price*drug.count
+            drugsCount+= (drug.price*drug.count if not drug.discrete else 0)
         data['drugsCount']=drugsCount
         data['ECGAndEcho']= (patient.costs.ECG if patient.costs.ECG else 0)+(patient.costs.echo if patient.costs.echo else 0)
         data['raysAndAxial']=(patient.costs.rays if patient.costs.rays else 0)+(patient.costs.axial if patient.costs.axial else 0)
@@ -141,4 +143,17 @@ class Invoice(APIView):
         data['doctorCosts']=doctorCosts
         data['assistantCosts']=assistantCosts
         data['anestheticCosts']=anestheticCosts
+        # print(data)
         return Response(data)
+
+@api_view(['PUT'])
+def lockPatientProfile(request,id):
+    patient=get_object_or_404(Patient,pk=id)
+    if 'outDate' in request.data and 'outTime' in request.data:
+        patient.outDate=datetime.strptime(request.data['outDate'],'%Y-%m-%d').date() if  patient.outDate==None else patient.outDate
+        patient.outTime=datetime.strptime(request.data['outTime'],'%H:%M').time() if  patient.outTime==None else patient.outTime
+        patient.locked=True
+        patient.save()
+        return Response('done',200)
+    else:
+        raise ValidationError('out time and date are requrid')

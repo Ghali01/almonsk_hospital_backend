@@ -27,11 +27,15 @@ class Patient(models.Model):
     room=models.IntegerField(null=True)
     therapy=models.CharField(max_length=30,null=True)
     acceptID=models.IntegerField()
-    enter=models.DateTimeField()
-    out=models.DateTimeField(null=True)
+    enterDate=models.DateField()
+    enterTime=models.TimeField(null=True)
+    outDate=models.DateField(null=True)
+    outTime=models.TimeField(null=True)
+
     birth=models.DateField(null=True)
     gender=models.CharField(max_length=1,choices=genderChoices)
     family=models.CharField(max_length=1,choices=familyChoices)
+    locked=models.BooleanField(default=False)
     doctor=models.ForeignKey(Doctor,null=True,on_delete=models.SET_NULL,related_name='patients')
     consults=models.ManyToManyField(Doctor,through='PatientConsult')
     class Meta:
@@ -61,6 +65,10 @@ class patientCosts(models.Model):
     intensiveCare=models.PositiveIntegerField(null=True)
     service=models.PositiveIntegerField(null=True)
 
+
+    def invoiceMisc(self):
+        return  (self.serums or 0) + (self.arches or 0 )+ (self.plastic or 0) + (self.threads or 0) + (self.resuscitate or 0) + (self.monitor or 0) + (self.incubator or 0) + (self.gypsum or 0) + (self.plates or 0) + (self.bandages or 0) + (self.service or 0)
+                
 class PatientConsult(models.Model):
     doctor=models.ForeignKey(Doctor,null=True,on_delete=models.SET_NULL)
     patient=models.ForeignKey(Patient,null=True,on_delete=models.SET_NULL)
@@ -75,6 +83,7 @@ class PatientDrug(models.Model):
     price=models.PositiveIntegerField()
     note=models.CharField(max_length=200,null=True)
     date=models.DateField(null=True)
+    discrete=models.BooleanField()
     employee=models.ForeignKey(Employee,null=True,on_delete=models.SET_NULL)
 
 

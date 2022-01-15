@@ -1,13 +1,12 @@
-from rest_framework import fields, serializers
-from rest_framework.serializers import Serializer,ModelSerializer
-from doctors.serializers import DoctorSerialzer
+from rest_framework import  serializers
+from rest_framework.serializers import ModelSerializer
 from .models import *
 
 class PatientListSerializer(ModelSerializer):
 
     class Meta:
         model=Patient
-        fields=['id','firstName','fatherName','motherName','secondName','acceptID']
+        fields=['id','firstName','fatherName','motherName','secondName','acceptID','locked']
 
         
 class PatientAcceptSerializer(ModelSerializer):
@@ -16,7 +15,7 @@ class PatientAcceptSerializer(ModelSerializer):
         model=Patient
         fields=['id','firstName','fatherName','motherName','secondName','nationality','occupation','phone',
                 'address','attendantName','attendantPhone','attendantAdderss',
-                'enter','out','birth','room','therapy',
+                'enterDate','enterTime','outDate','outTime','birth','room','therapy',
                 'gender','family','doctor','doctor','acceptID']
 
     def create(self, validated_data):
@@ -50,7 +49,8 @@ class InvoiceSerializer(ModelSerializer):
     intensiveCare=serializers.IntegerField(source='costs.intensiveCare')
     residence=serializers.IntegerField(source='costs.residence')
     laboratory=serializers.IntegerField(source='costs.laboratory')
+    miscellaneous=serializers.IntegerField(source='costs.invoiceMisc')
     class Meta:
         model=Patient
         fields=['fullName','doctorName','surgeryRom','intensiveCare','residence',
-                    'laboratory','gender','acceptID','enter','out']
+                    'laboratory','miscellaneous','gender','acceptID','enterDate','outDate']

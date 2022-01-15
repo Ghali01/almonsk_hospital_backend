@@ -4,6 +4,7 @@ urlpatterns=[
     path('<int:page>',Drugs.as_view(),name='drugs'),
     path('',Drugs.as_view(),name='drugs'),
     path('employees',Employees.as_view(),name='employees'),
+    path('employees/<int:pk>',Employees.as_view(),name='employees'),
     path('invoices/<int:page>',Invoices.as_view(),name='invoices'),
     path('invoice-single/<int:pk>',InvoiceView.as_view(),name='invoice'),
     path('invoice-single',InvoiceView.as_view(),name='invoice'),

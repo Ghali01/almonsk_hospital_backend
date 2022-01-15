@@ -4,6 +4,8 @@ urlpatterns=[
     path('<int:page>',Materials.as_view(),name='materials'),
     path('',Materials.as_view(),name='materials'),
     path('employees',Employees.as_view(),name='employees'),
+    path('employees/<int:pk>',Employees.as_view(),name='employees'),
+
     path('invoices/<int:page>',Invoices.as_view(),name='invoices'),
     path('invoice-single/<int:pk>',InvoiceView.as_view(),name='invoice'),
     path('invoice-single',InvoiceView.as_view(),name='invoice'),

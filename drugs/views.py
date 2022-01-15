@@ -1,6 +1,6 @@
 from rest_framework.generics import GenericAPIView
 from rest_framework.views import APIView
-from rest_framework.mixins import ListModelMixin,CreateModelMixin, RetrieveModelMixin
+from rest_framework.mixins import ListModelMixin,CreateModelMixin, RetrieveModelMixin, UpdateModelMixin
 
 from drugs.models import Employee, Invoice, InvoiceItem
 from patients.models import PatientDrug
@@ -40,7 +40,7 @@ class Drugs(GenericAPIView,ListModelMixin,CreateModelMixin):
             return Response(serializered.data)
         raise ValidationError(detail='id is required')
 
-class Employees(GenericAPIView,ListModelMixin,CreateModelMixin):
+class Employees(GenericAPIView,ListModelMixin,UpdateModelMixin,CreateModelMixin):
     serializer_class=EmployeeSerializer
     queryset=Employee.objects.all()
 
@@ -50,15 +50,17 @@ class Employees(GenericAPIView,ListModelMixin,CreateModelMixin):
             queryset=queryset.annotate(fullName=Concat(F('firstName'),Value(' '),F('fatherName'),Value(' '),F('secondName'),output_field=CharField()),
                                     fsName=Concat(F('firstName'),Value(' '),F('secondName'),output_field=CharField()))
             queryset=queryset.filter(Q(fullName__istartswith=self.request.GET['search'])|Q(fsName__istartswith=self.request.GET['search']))
-
+        if 'permission' in self.request.GET and self.request.GET['permission'] in ('in','out'):
+            queryset=queryset.filter(**{self.request.GET['permission']+'Permission':True})
             
         return queryset
-    def get(self,request):
+    def get(self,request,*args,**kwargs):
         return self.list(request)
 
-    def post(self,request): 
+    def post(self,request,*args,**kwargs): 
         return self.create(request)
-
+    def put(self,request,*args,**kwargs):
+        return self.update(request)
 class Invoices(GenericAPIView,ListModelMixin):
 
     queryset=Invoice.objects.all()

@@ -17,7 +17,9 @@ class Employee(models.Model):
     fatherName=models.CharField(max_length=50)
     secondName=models.CharField(max_length=50)
     phone=models.CharField(max_length=10)
-
+    inPermission=models.BooleanField()
+    outPermission=models.BooleanField()
+    
     def __str__(self) :
         return f'{self.firstName} {self.fatherName} {self.secondName}'
     class Meta:
