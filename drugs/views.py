@@ -1,3 +1,4 @@
+from functools import reduce
 from rest_framework.generics import GenericAPIView
 from rest_framework.views import APIView
 from rest_framework.mixins import ListModelMixin,CreateModelMixin, RetrieveModelMixin, UpdateModelMixin
@@ -9,7 +10,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from django.db.models import F,Value,CharField,Q,Sum
 from django.db.models.functions import Concat 
-import functools
+import operator
 class Drugs(GenericAPIView,ListModelMixin,CreateModelMixin):
     serializer_class=DrugSerializer
     queryset=Drug.objects.all()
@@ -18,7 +19,11 @@ class Drugs(GenericAPIView,ListModelMixin,CreateModelMixin):
         if self.request.method=='GET' and 'search' in self.request.GET :
             page=self.kwargs['page']
             if self.request.GET['search']:
-                q=queryset.filter(name__icontains=self.request.GET['search'])[20*(page-1):20*page]
+                search=self.request.GET['search']
+                qS=[]
+                for word in search.strip().split(' '):
+                    qS.append(Q(name__icontains=word))
+                q=queryset.filter(reduce(operator.or_,qS))[20*(page-1):20*page]
                 return q 
             
             return queryset[20*(page-1):20*page]

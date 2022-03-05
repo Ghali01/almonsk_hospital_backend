@@ -103,8 +103,8 @@ class PatientSurgeries(GenericAPIView,ListModelMixin):
 
     def put(self,request,*args,**kwargs):
         ids=[]
+        serializered=None
         for surgery in request.data:
-            serializered=None
             if 'id' in surgery and not surgery['id']== None:
                 surgeryObj =PatientSurgery.objects.get(pk=int(surgery['id']))
                 serializered=PatienSurgerySerializer(instance=surgeryObj,data=surgery)
@@ -116,7 +116,7 @@ class PatientSurgeries(GenericAPIView,ListModelMixin):
                 ids.append(serializered.data['id'])
  
         PatientSurgery.objects.filter(patient_id=self.kwargs['id']).exclude(id__in=ids).delete()
-        return Response(serializered.data)
+        return Response(serializered.data if not serializered==None else '')
 
 class Invoice(APIView):
     def get(self,request,id,*args,**kwargs):

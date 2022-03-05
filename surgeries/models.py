@@ -1,9 +1,8 @@
 from django.db import models
-from django.db.models.fields import PositiveIntegerField
 class Surgery(models.Model):
     name=models.CharField(max_length=100)
-    price=PositiveIntegerField()
+    price=models.PositiveIntegerField()
     duration =models.FloatField()
-   
+    QHAP=models.PositiveBigIntegerField()
     class Meta:
         ordering=['name']
