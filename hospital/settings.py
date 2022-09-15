@@ -28,12 +28,7 @@ SECRET_KEY = 'django-insecure-x1d!zn_spwq#uq&8s0=yb9$r)bxrf#u1r4bk0da%!+jjbis(38
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    getIP(),
-    'localhost',
-    '127.0.0.1',
-    '10.0.2.2'
-]
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -86,19 +81,28 @@ WSGI_APPLICATION = 'hospital.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-dbFile=open(os.path.expandvars('%APPDATA%/al-monsk server/db.json'))
+def expandvars(path:str):
+    return os.path.expandvars(path)
+
+dbFile=open(expandvars('%APPDATA%/al-monsk server/db.json'))
 txt=dbFile.read()
 dbFile.close()
 dbSettings=json.loads(txt)
 for item in ('default','newDB'):
     if item in dbSettings:
-        dbSettings[item]['NAME']=os.path.expandvars(dbSettings[item]['NAME'])
+        dbSettings[item]['NAME']=expandvars(dbSettings[item]['NAME'])
+
 DATABASES = {
     'default': dbSettings['default'],
     'export':dbSettings['export'] if 'export' in dbSettings else {},
     'import':dbSettings['import'] if 'import' in dbSettings else {},
     'newDB':dbSettings['newDB'] if 'newDB' in dbSettings else {},
 }
+
+# {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

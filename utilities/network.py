@@ -1,13 +1,14 @@
 import socket
 from mysql.connector.errors import DatabaseError
-import psutil
 import os 
 import signal
 from mysql.connector import connect
 from time import sleep, time
 from tempfile  import gettempdir
-import shutil
+# from android_tools import isAndroid
 def getIP():
+    # if isAndroid():
+    #     return os.environ['ip']
     hostName=socket.gethostname()
     ip= socket.gethostbyname(hostName)
     return  ip
@@ -20,6 +21,8 @@ def pingOnServer():
     except:
         return False
 def killAllServers():
+    import psutil
+    import shutil
     for proc in psutil.process_iter():
         if proc.name()=='hospital-server.exe':
             print(proc.pid)
@@ -44,4 +47,4 @@ def pingOnMySQL(host,user,password,port):
     except DatabaseError:
         return False,0.0
 if __name__=='__main__':
-    print(pingOnMySQL("127.0.0.1",'root','','3306'))
+    print(getIP())
