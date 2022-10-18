@@ -80,30 +80,32 @@ WSGI_APPLICATION = 'hospital.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
+import sys
 def expandvars(path:str):
     return os.path.expandvars(path)
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
 
-dbFile=open(expandvars('%APPDATA%/al-monsk server/db.json'))
-txt=dbFile.read()
-dbFile.close()
-dbSettings=json.loads(txt)
-for item in ('default','newDB'):
-    if item in dbSettings:
-        dbSettings[item]['NAME']=expandvars(dbSettings[item]['NAME'])
+    dbFile=open(expandvars('%APPDATA%/al-monsk server/db.json'))
+    txt=dbFile.read()
+    dbFile.close()
+    dbSettings=json.loads(txt)
+    for item in ('default','newDB'):
+        if item in dbSettings:
+            dbSettings[item]['NAME']=expandvars(dbSettings[item]['NAME'])
 
-DATABASES = {
-    'default': dbSettings['default'],
-    'export':dbSettings['export'] if 'export' in dbSettings else {},
-    'import':dbSettings['import'] if 'import' in dbSettings else {},
-    'newDB':dbSettings['newDB'] if 'newDB' in dbSettings else {},
-}
-
-# {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-
+    DATABASES = {
+        'default': dbSettings['default'],
+        'export':dbSettings['export'] if 'export' in dbSettings else {},
+        'import':dbSettings['import'] if 'import' in dbSettings else {},
+        'newDB':dbSettings['newDB'] if 'newDB' in dbSettings else {},
+    }
+else:
+    DATABASES ={
+        'default':{
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 

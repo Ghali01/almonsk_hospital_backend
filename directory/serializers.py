@@ -9,7 +9,7 @@ class MaterialSerializer(ModelSerializer):
 
     class Meta:
         model=Material
-        fields=['id','name','price','count']
+        fields=['id','name','price','buyPrice','count']
 
 class EmployeeSerializer(ModelSerializer):
 
@@ -46,7 +46,13 @@ class InvoiceSerializer(ModelSerializer):
             elif validated_data['type']=='O':
                 item['material'].count =F('count') -item['count']
             item['material'].save()
-            InvoiceItem.objects.create(invoice=invoice,material=item['material'],price=item['material'].price,count=item['count'])
+            price=None
+            if validated_data['type'] in ('B','O'):
+                price=item['material'].price
+            elif validated_data['type']=='E':
+                price=item['material'].buyPrice
+                
+            InvoiceItem.objects.create(invoice=invoice,material=item['material'],price=price,count=item['count'])
         return invoice
     class Meta:
         model=Invoice 

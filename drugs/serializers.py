@@ -9,7 +9,7 @@ class DrugSerializer(ModelSerializer):
 
     class Meta:
         model=Drug
-        fields=['id','name','price','count']
+        fields=['id','name','price','buyPrice','count']
 
 class EmployeeSerializer(ModelSerializer):
 
@@ -45,7 +45,13 @@ class InvoiceSerializer(ModelSerializer):
             elif validated_data['type']=='O':
                 item['drug'].count =F('count') -item['count']
             item['drug'].save()
-            InvoiceItem.objects.create(invoice=invoice,drug=item['drug'],price=item['drug'].price,count=item['count'])
+            price=None
+            if validated_data['type'] in ('B','O'):
+                price=item['drug'].price
+            elif validated_data['type']=='E':
+                price=item['drug'].buyPrice
+                
+            InvoiceItem.objects.create(invoice=invoice,drug=item['drug'],price=price,count=item['count'])
         return invoice
     class Meta:
         model=Invoice 
