@@ -1,7 +1,7 @@
 from rest_framework.views import APIView,Response
 from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.mixins import CreateModelMixin,UpdateModelMixin,DestroyModelMixin
-from .serializers import DoctorSerialzer
+from .serializers import DoctorSerialzer,UpdateDoctorSerialzer
 from .models import Doctor
 from django.db.models.functions import Concat
 from django.db.models import Q,F,CharField,Value
@@ -10,6 +10,11 @@ from rest_framework.decorators import  api_view
 class Doctors(GenericAPIView,CreateModelMixin,UpdateModelMixin,DestroyModelMixin):
     serializer_class=DoctorSerialzer
     queryset=Doctor.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method=='PUT':
+            return UpdateDoctorSerialzer
+        return super().get_serializer_class()
     
     def post(self,request,*args,**kwargs):
         return self.create(request,*args,**kwargs)

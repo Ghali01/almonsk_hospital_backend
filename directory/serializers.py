@@ -1,3 +1,4 @@
+
 from rest_framework.serializers import ModelSerializer, Serializer
 from rest_framework.fields import IntegerField,CharField,DateTimeField
 from rest_framework.relations import StringRelatedField
@@ -5,17 +6,30 @@ from .models import Material,Employee, Invoice, InvoiceItem
 from django.db.models import F
 
 class MaterialSerializer(ModelSerializer):
-
-
     class Meta:
         model=Material
         fields=['id','name','price','buyPrice','count']
+        read_only_fields=['id','count']
+
+
+
+class UpdateMaterialSerializer(ModelSerializer):
+    class Meta:
+        model=Material
+        fields=['id','name','price','buyPrice','count']
+        read_only_fields=['id','name','count']
 
 class EmployeeSerializer(ModelSerializer):
 
     class Meta:
         model=Employee
         fields=['id','firstName','fatherName','secondName','inPermission','outPermission','phone']
+class UpdateEmployeeSerializer(ModelSerializer):
+
+    class Meta:
+        model=Employee
+        fields=['id','firstName','fatherName','secondName','inPermission','outPermission','phone']
+        read_only_fields=['id','firstName','fatherName','secondName']
 
 
 

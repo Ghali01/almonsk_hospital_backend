@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.mixins import ListModelMixin,CreateModelMixin, RetrieveModelMixin, UpdateModelMixin
 
 from directory.models import Employee, Invoice, InvoiceItem
-from .serializers import Material,MaterialSerializer, EmployeeSerializer, InvoiceItemSerializer, InvoiceListSerializer, InvoiceSerializer
+from .serializers import Material,MaterialSerializer,UpdateMaterialSerializer,UpdateEmployeeSerializer, EmployeeSerializer, InvoiceItemSerializer, InvoiceListSerializer, InvoiceSerializer
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from django.db.models import F,Value,CharField,Q,Sum
@@ -12,6 +12,13 @@ class Materials(GenericAPIView,ListModelMixin,CreateModelMixin):
     serializer_class=MaterialSerializer
     queryset=Material.objects.all()
     
+    def get_serializer_class(self):
+        if self.request.method=="PUT":
+            return UpdateMaterialSerializer
+        
+        return super().get_serializer_class()
+
+
     def filter_queryset(self, queryset):
         if self.request.method=='GET' and 'search' in self.request.GET :
             page=self.kwargs['page']
@@ -31,7 +38,7 @@ class Materials(GenericAPIView,ListModelMixin,CreateModelMixin):
     def put(self,request,*args,**kwargs):
         if  'id' in request.data:
             surgery=Material.objects.get(pk=request.data['id'])
-            serializered=MaterialSerializer(instance=surgery,data=request.data)
+            serializered=UpdateMaterialSerializer(instance=surgery,data=request.data)
             if serializered.is_valid():
                 serializered.save()
 
@@ -41,6 +48,16 @@ class Materials(GenericAPIView,ListModelMixin,CreateModelMixin):
 class Employees(GenericAPIView,ListModelMixin,UpdateModelMixin,CreateModelMixin):
     serializer_class=EmployeeSerializer
     queryset=Employee.objects.all()
+
+    
+    def get_serializer_class(self):
+        if self.request.method=='PUT':
+            return UpdateEmployeeSerializer
+        
+        
+        
+        return super().get_serializer_class()
+
 
     def filter_queryset(self, queryset):
         queryset= self.get_queryset()

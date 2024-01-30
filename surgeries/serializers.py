@@ -19,3 +19,9 @@ class SurgerySerializer(ModelSerializer):
         
         return super().update(obj,data)
         
+class UpdateSurgerySerializer(SurgerySerializer):
+
+    class Meta:
+        model=Surgery
+        fields="__all__"
+        read_only_fields=['id','name']

@@ -2,7 +2,7 @@ from functools import reduce
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import CreateModelMixin, ListModelMixin
 from rest_framework.response import Response
-from .serializers import Surgery,SurgerySerializer
+from .serializers import Surgery,SurgerySerializer,UpdateSurgerySerializer
 from rest_framework.exceptions import ValidationError
 from django.db.models.query_utils import Q
 import operator
@@ -27,12 +27,11 @@ class Surgeries(GenericAPIView,ListModelMixin,CreateModelMixin):
     def get(self,request,*args,**kwargs):
         return self.list(request)
     def post(self,request,*args,**kwargs):
-        print(request.data)
         return self.create(request,*args,**kwargs)
     def put(self,request,*args,**kwargs):
         if  'id' in request.data:
             surgery=Surgery.objects.get(pk=request.data['id'])
-            serializered=SurgerySerializer(instance=surgery,data=request.data)
+            serializered=UpdateSurgerySerializer(instance=surgery,data=request.data)
             if serializered.is_valid():
                 serializered.save()
 

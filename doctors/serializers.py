@@ -8,3 +8,9 @@ class DoctorSerialzer(ModelSerializer):
         model=Doctor
         fields=['id','firstName','fatherName','secondName','phone','specialzation','surgeon','assistant','anesthetic','account']
         read_only_fields=['account']   
+class UpdateDoctorSerialzer(ModelSerializer):
+    account= IntegerField(read_only=True)
+    class Meta:
+        model=Doctor
+        fields=['id','firstName','fatherName','secondName','phone','specialzation','surgeon','assistant','anesthetic','account']
+        read_only_fields=['firstName','fatherName','secondName','account']   

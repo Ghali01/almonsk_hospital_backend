@@ -5,17 +5,30 @@ from .models import Drug,Employee, Invoice, InvoiceItem
 from django.db.models import F
 
 class DrugSerializer(ModelSerializer):
-
-
     class Meta:
         model=Drug
         fields=['id','name','price','buyPrice','count']
+        read_only_fields=['id','count']
 
+class UpdateDrugSerializer(ModelSerializer):
+    class Meta:
+        model=Drug
+        fields=['id','name','price','buyPrice','count']
+        # fields=['id','name','price','buyPrice','count']
+        read_only_fields=['id','count','name']
+
+        
 class EmployeeSerializer(ModelSerializer):
 
     class Meta:
         model=Employee
         fields=['id','firstName','fatherName','secondName','inPermission','outPermission','phone']
+class UpdateEmployeeSerializer(ModelSerializer):
+
+    class Meta:
+        model=Employee
+        fields=['id','firstName','fatherName','secondName','inPermission','outPermission','phone']
+        read_only_fields=['id','firstName','fatherName','secondName']
 
 
 class InvoiceItemInInvoicSerializer(ModelSerializer):

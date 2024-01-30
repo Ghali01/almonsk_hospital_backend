@@ -5,7 +5,7 @@ from rest_framework.mixins import ListModelMixin,CreateModelMixin, RetrieveModel
 
 from drugs.models import Employee, Invoice, InvoiceItem
 from patients.models import PatientDrug
-from .serializers import Drug,DrugSerializer, EmployeeSerializer, InvoiceItemSerializer, InvoiceListSerializer, InvoiceSerializer
+from .serializers import Drug,DrugSerializer,UpdateDrugSerializer, EmployeeSerializer,UpdateEmployeeSerializer, InvoiceItemSerializer, InvoiceListSerializer, InvoiceSerializer
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from django.db.models import F,Value,CharField,Q,Sum
@@ -29,6 +29,14 @@ class Drugs(GenericAPIView,ListModelMixin,CreateModelMixin):
             return queryset[20*(page-1):20*page]
             
         return queryset
+    
+    def get_serializer_class(self):
+        
+        if self.request.method=='PUT':
+            return UpdateDrugSerializer
+        
+        
+        return super().get_serializer_class()
     def get(self,request,*args,**kwargs):
 
         return self.list(request)
@@ -38,7 +46,7 @@ class Drugs(GenericAPIView,ListModelMixin,CreateModelMixin):
     def put(self,request,*args,**kwargs):
         if  'id' in request.data:
             surgery=Drug.objects.get(pk=request.data['id'])
-            serializered=DrugSerializer(instance=surgery,data=request.data)
+            serializered=UpdateDrugSerializer(instance=surgery,data=request.data)
             if serializered.is_valid():
                 serializered.save()
 
@@ -48,6 +56,15 @@ class Drugs(GenericAPIView,ListModelMixin,CreateModelMixin):
 class Employees(GenericAPIView,ListModelMixin,UpdateModelMixin,CreateModelMixin):
     serializer_class=EmployeeSerializer
     queryset=Employee.objects.all()
+
+    def get_serializer_class(self):
+        if self.request.method=='PUT':
+            return UpdateEmployeeSerializer
+        
+        
+        
+        return super().get_serializer_class()
+
 
     def filter_queryset(self, queryset):
         queryset= self.get_queryset()

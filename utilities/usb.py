@@ -1,7 +1,7 @@
 import win32com.client
 
-__VID='14CD'
-__PID='2536'
+__VID='13FE'
+__PID='3600'
 def getDevices():
     devices=[]
     wmi = win32com.client.GetObject ("winmgmts:")
@@ -18,7 +18,7 @@ def getDevices():
 
     return devices
 def checkOnUSBDongle():
-    return True
+    # return True
     return len(list(filter(lambda it:it['pid']==__PID and it['vid']==__VID,getDevices())))>0
 class DongleError(Exception):
     pass
