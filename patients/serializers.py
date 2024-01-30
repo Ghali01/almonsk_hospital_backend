@@ -1,5 +1,7 @@
 from rest_framework import  serializers
 from rest_framework.serializers import ModelSerializer
+from rest_framework.fields import SerializerMethodField
+from django.db.models import F,Sum
 from .models import *
 
 class PatientListSerializer(ModelSerializer):
@@ -27,17 +29,21 @@ class ConsultSerializer(ModelSerializer):
         model=PatientConsult
         fields=['doctor','cost','paided','patient']
 class PatientCostSerializer(ModelSerializer):
+    drugs=SerializerMethodField()
+
     class Meta:
         model=patientCosts
         exclude=['patient','id']
 
+    def  get_drugs(self,obj):
+        drugs=PatientDrug.objects.filter(patient_id=obj.patient.id).annotate(total=F('price')*F('count')).aggregate(allTotal=Sum('total'))['allTotal']
+        return drugs
 class PatientDrugSerializer(ModelSerializer):
     class Meta:
         model=PatientDrug
         fields='__all__'
 
 class PatienSurgerySerializer(ModelSerializer):
-
     class Meta:
         model=PatientSurgery
         fields='__all__'
