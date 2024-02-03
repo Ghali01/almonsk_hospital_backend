@@ -30,14 +30,30 @@ class ConsultSerializer(ModelSerializer):
         fields=['doctor','cost','paided','patient']
 class PatientCostSerializer(ModelSerializer):
     drugs=SerializerMethodField()
+    surgeonCosts=SerializerMethodField()
+    assistantCosts=SerializerMethodField()
+    anestheticCosts=SerializerMethodField()
 
     class Meta:
         model=patientCosts
         exclude=['patient','id']
 
     def  get_drugs(self,obj):
-        drugs=PatientDrug.objects.filter(patient_id=obj.patient.id).annotate(total=F('price')*F('count')).aggregate(allTotal=Sum('total'))['allTotal']
+        drugs=PatientDrug.objects.filter(patient_id=obj.patient.id,discrete=False).annotate(total=F('price')*F('count')).aggregate(allTotal=Sum('total'))['allTotal']
         return drugs
+    
+    def get_surgeonCosts(self,obj):
+        costs=PatientSurgery.objects.filter(patient_id=obj.patient.id).aggregate(costs=Sum('surgeonCosts'))['costs']
+        return costs
+    def get_surgeonCosts(self,obj):
+        costs=PatientSurgery.objects.filter(patient_id=obj.patient.id).aggregate(costs=Sum('surgeonCosts'))['costs']
+        return costs
+    def get_assistantCosts(self,obj):
+        costs=PatientSurgery.objects.filter(patient_id=obj.patient.id).aggregate(costs=Sum('assistantCosts'))['costs']
+        return costs
+    def get_anestheticCosts(self,obj):
+        costs=PatientSurgery.objects.filter(patient_id=obj.patient.id).aggregate(costs=Sum('anestheticCosts'))['costs']
+        return costs
 class PatientDrugSerializer(ModelSerializer):
     class Meta:
         model=PatientDrug
